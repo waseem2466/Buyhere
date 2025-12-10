@@ -6,129 +6,27 @@
     <title>WR Smile & Supplies - Premium Shopping</title>
     <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=WR&background=7c3aed&color=fff&size=128&bold=true" />
     <meta property="og:image" content="https://ui-avatars.com/api/?name=WR&background=7c3aed&color=fff&size=128&bold=true" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-        transition: background 0.5s ease, color 0.5s ease;
-      }
-      
-      /* Dark Mode Global Overrides */
-      .dark body {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #f3f4f6;
-      }
-
-      /* Custom Scrollbar for Glass Effect */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(156, 163, 175, 0.5); 
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(107, 114, 128, 0.8); 
-      }
-
-      /* Light Mode Glass */
-      .glass-panel {
-        background: rgba(255, 255, 255, 0.65);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transition: background 0.3s ease, border-color 0.3s ease;
-      }
-      .glass-card {
-        background: rgba(255, 255, 255, 0.45);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-        transition: background 0.3s ease, border-color 0.3s ease;
-      }
-
-      /* Dark Mode Glass */
-      .dark .glass-panel {
-        background: rgba(17, 24, 39, 0.75); /* Gray-900 with opacity */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .dark .glass-card {
-        background: rgba(30, 41, 59, 0.6); /* Gray-800 with opacity */
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.10.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.557.0",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
-    "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
-  }
-}
-</script>
-</head>
-  <body class="antialiased text-gray-800 dark:text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-pink-300 selection:text-pink-900">
-    <!-- Animated Background Blobs -->
-    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob transition-colors duration-500"></div>
-        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-yellow-200 dark:bg-blue-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000 transition-colors duration-500"></div>
-        <div class="absolute -bottom-32 left-20 w-96 h-96 bg-pink-300 dark:bg-pink-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000 transition-colors duration-500"></div>
+  </head>
+  <body class="antialiased text-gray-800 dark:text-gray-100 min-h-screen relative overflow-x-hidden selection:bg-purple-300 selection:text-purple-900">
+    
+    <!-- Premium Liquid Background -->
+    <div class="liquid-background">
+        <!-- Abstract Shapes -->
+        <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-purple-300/30 dark:bg-purple-600/20 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen filter"></div>
+        <div class="absolute top-[0%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-cyan-200/30 dark:bg-cyan-600/20 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen filter"></div>
+        <div class="absolute bottom-[-10%] left-[20%] w-[45vw] h-[45vw] rounded-full bg-pink-300/30 dark:bg-pink-600/20 blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen filter"></div>
+        <div class="absolute bottom-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full bg-yellow-200/30 dark:bg-amber-600/20 blur-[80px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen filter"></div>
+        
+        <!-- Center connecting blob -->
+        <div class="absolute top-[30%] left-[30%] w-[40vw] h-[40vw] rounded-full bg-indigo-300/20 dark:bg-indigo-600/20 blur-[120px] animate-pulse-slow mix-blend-multiply dark:mix-blend-screen filter"></div>
+        
+        <!-- Noise Texture -->
+        <div class="noise-overlay"></div>
     </div>
+
     <div id="root"></div>
-    <script>
-      tailwind.config = {
-        darkMode: 'class', // Enable class-based dark mode
-        theme: {
-          extend: {
-            animation: {
-              blob: "blob 7s infinite",
-              "fade-in-down": "fadeInDown 0.5s ease-out",
-              "fade-in-up": "fadeInUp 0.5s ease-out",
-              "slide-in-right": "slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-              float: "float 6s ease-in-out infinite",
-            },
-            keyframes: {
-              blob: {
-                "0%": { transform: "translate(0px, 0px) scale(1)" },
-                "33%": { transform: "translate(30px, -50px) scale(1.1)" },
-                "66%": { transform: "translate(-20px, 20px) scale(0.9)" },
-                "100%": { transform: "translate(0px, 0px) scale(1)" },
-              },
-              fadeInDown: {
-                "0%": { opacity: "0", transform: "translateY(-10px)" },
-                "100%": { opacity: "1", transform: "translateY(0)" },
-              },
-              fadeInUp: {
-                "0%": { opacity: "0", transform: "translateY(20px)" },
-                "100%": { opacity: "1", transform: "translateY(0)" },
-              },
-              slideInRight: {
-                "0%": { transform: "translateX(100%)" },
-                "100%": { transform: "translateX(0)" },
-              },
-              float: {
-                "0%, 100%": { transform: "translateY(0)" },
-                "50%": { transform: "translateY(-20px)" },
-              },
-            },
-          },
-        },
-      }
-    </script>
-    <script type="module" src="./index.tsx"></script>
+    
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
