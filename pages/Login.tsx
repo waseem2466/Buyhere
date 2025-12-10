@@ -6,7 +6,7 @@ import { User as UserType } from '../types.ts';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, register, loading } = useAuth();
+  const { login, loginWithGoogle, loginAsDemoUser, register, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState('');
   const [showDomainHelp, setShowDomainHelp] = useState(false);
@@ -19,7 +19,14 @@ const Login: React.FC = () => {
 
   const getErrorMessage = (err: any) => {
     const code = err.code;
+    const msg = err.message || '';
     
+    // Robust check for unauthorized domain (covers code and message body)
+    if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized-domain')) {
+      setShowDomainHelp(true);
+      return `Domain Authorization Error: The domain "${window.location.hostname}" is not allowed to use Google Login for this Firebase project.`;
+    }
+
     if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
       return "Invalid email or password. If you haven't created an account yet, please Sign Up.";
     }
@@ -35,15 +42,11 @@ const Login: React.FC = () => {
     if (code === 'auth/popup-closed-by-user') {
       return "Sign in cancelled.";
     }
-    if (code === 'auth/unauthorized-domain') {
-      setShowDomainHelp(true);
-      return `Domain Authorization Error: The domain "${window.location.hostname}" is not allowed to use Google Login for this Firebase project.`;
-    }
     if (code === 'auth/popup-blocked') {
       return "Popup blocked. Please allow popups for this site to sign in with Google.";
     }
     
-    return err.message || "Authentication failed. Please check your details and try again.";
+    return msg || "Authentication failed. Please check your details and try again.";
   };
 
   const handleRedirect = (user: UserType) => {
@@ -82,6 +85,18 @@ const Login: React.FC = () => {
     } catch (err: any) {
       console.error("Google Login error:", err);
       setError(getErrorMessage(err));
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError('');
+    setShowDomainHelp(false);
+    try {
+      const user = await loginAsDemoUser();
+      handleRedirect(user);
+    } catch (err) {
+      console.error("Demo login error", err);
+      setError("Demo login failed. Please try again.");
     }
   };
 
@@ -173,13 +188,26 @@ const Login: React.FC = () => {
                       )}
                     </div>
 
-                    <ol className="list-decimal pl-4 space-y-1 text-gray-600 dark:text-gray-400 text-xs">
+                    <ol className="list-decimal pl-4 space-y-1 text-gray-600 dark:text-gray-400 text-xs mb-4">
                       <li>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline inline-flex items-center">Firebase Console <ExternalLink size={10} className="ml-0.5"/></a></li>
                       <li>Select project <b>wr-web</b></li>
                       <li>Navigate to <b>Authentication</b> &gt; <b>Settings</b></li>
                       <li>Click <b>Authorized Domains</b> &gt; <b>Add Domain</b></li>
-                      <li>Add both domains listed above.</li>
+                      <li>Add the Current domain listed above.</li>
                     </ol>
+
+                    <div className="mt-2 pt-3 border-t border-yellow-200 dark:border-yellow-800">
+                        <p className="text-xs text-yellow-800 dark:text-yellow-200 mb-2 font-semibold">
+                           Development Bypass
+                        </p>
+                        <button 
+                          type="button"
+                          onClick={handleDemoLogin}
+                          className="w-full py-2 bg-yellow-100 dark:bg-yellow-900/40 hover:bg-yellow-200 dark:hover:bg-yellow-900/60 text-yellow-800 dark:text-yellow-200 rounded-lg text-xs font-bold border border-yellow-300 dark:border-yellow-700 flex items-center justify-center gap-2 transition-colors"
+                        >
+                           Skip & Continue as Demo User <ArrowRight size={12} />
+                        </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -241,11 +269,6 @@ const Login: React.FC = () => {
                 <code className="text-xs bg-gray-100 dark:bg-black/30 px-2 py-1 rounded select-all text-gray-600 dark:text-gray-300 font-mono border border-gray-200 dark:border-gray-800 break-all">
                   {window.location.hostname}
                 </code>
-                {window.location.hostname !== 'wrbuyhere.netlify.app' && (
-                  <code className="text-xs bg-gray-100 dark:bg-black/30 px-2 py-1 rounded select-all text-gray-600 dark:text-gray-300 font-mono border border-gray-200 dark:border-gray-800 break-all">
-                    wrbuyhere.netlify.app
-                  </code>
-                )}
              </div>
           </div>
         </div>

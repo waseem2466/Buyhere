@@ -135,6 +135,18 @@ export const authService = {
     }
   },
 
+  async loginAsDemoUser(): Promise<User> {
+    // Simulate network delay for realistic feel
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    return {
+      uid: 'demo-user-' + Math.random().toString(36).substring(2, 9),
+      name: 'Demo User',
+      email: 'demo@example.com',
+      role: 'customer'
+    };
+  },
+
   async logout(): Promise<void> {
     try {
       await signOut(auth);

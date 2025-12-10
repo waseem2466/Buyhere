@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, pass: string) => Promise<User>;
   loginWithGoogle: () => Promise<User>;
+  loginAsDemoUser: () => Promise<User>;
   register: (name: string, email: string, pass: string) => Promise<User>;
   logout: () => Promise<void>;
   isAdmin: boolean;
@@ -49,6 +50,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     }
   };
+  
+  const loginAsDemoUser = async () => {
+    setLoading(true);
+    try {
+      const user = await authService.loginAsDemoUser();
+      setUser(user);
+      localStorage.setItem('wr_user', JSON.stringify(user));
+      return user;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const register = async (name: string, email: string, pass: string) => {
     setLoading(true);
@@ -73,7 +86,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       user, 
       loading, 
       login,
-      loginWithGoogle, 
+      loginWithGoogle,
+      loginAsDemoUser, 
       register, 
       logout,
       isAdmin: user?.role === 'admin'
