@@ -37,24 +37,28 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errInfo = {
+    error: errorMessage,
     operationType,
-    path
+    path,
+    userId: auth.currentUser?.uid || null,
+    email: auth.currentUser?.email || null,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  
+  let serialized = "";
+  try {
+    serialized = JSON.stringify(errInfo);
+  } catch (e) {
+    serialized = JSON.stringify({
+      error: String(errorMessage),
+      operationType: String(operationType),
+      path: String(path)
+    });
+  }
+  
+  console.error('Firestore Error: ', serialized);
+  throw new Error(serialized);
 }
 
 const googleProvider = new GoogleAuthProvider();

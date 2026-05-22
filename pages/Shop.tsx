@@ -27,10 +27,15 @@ const Shop: React.FC = () => {
   const [priceRange, setPriceRange] = useState<number>(500000); // Max price default
 
   useEffect(() => {
-    storeService.getProducts().then(data => {
-      setProducts(data);
-      setLoading(false);
-    });
+    storeService.getProducts()
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Shop: fails to load products:", err);
+        setLoading(false);
+      });
   }, []);
 
   const filteredProducts = useMemo(() => {

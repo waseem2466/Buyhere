@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Package, Plus, Trash, Search, X, Save, Upload, Edit, 
   ChevronDown, ChevronUp, ShoppingBag, Sparkles, Sliders, 
-  TrendingUp, Users, DollarSign, BarChart3, PieChart, Settings
+  TrendingUp, Users, DollarSign, BarChart3, PieChart, Settings, Tag
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -10,7 +10,7 @@ import {
   PieChart as ReChartsPieChart, Pie
 } from 'recharts';
 import { storeService } from '../services/storeService';
-import { Product, Order, StoreSettings } from '../types';
+import { Product, Order, StoreSettings, Coupon } from '../types';
 import { CURRENCY_SYMBOL, CATEGORIES } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,8 @@ const Admin: React.FC = () => {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'settings'>('dashboard');
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'coupons' | 'settings'>('dashboard');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   // Custom WhatsApp and Webhook states
@@ -34,6 +35,17 @@ const Admin: React.FC = () => {
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState(false);
   
+  // Coupon Modal State
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [couponForm, setCouponForm] = useState<Omit<Coupon, 'id' | 'createdAt'>>({
+    code: '',
+    type: 'percent',
+    value: 0,
+    minSpend: 0,
+    isActive: true
+  });
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -75,9 +87,89 @@ const Admin: React.FC = () => {
   }, [isAdmin]);
 
   const loadData = () => {
-    storeService.getProducts().then(setProducts);
-    storeService.getOrders().then(setOrders);
-    storeService.getSettings().then(setSettingsForm);
+    storeService.getProducts()
+      .then(setProducts)
+      .catch(err => console.error("Admin: failed to load products:", err));
+      
+    storeService.getOrders()
+      .then(setOrders)
+      .catch(err => console.error("Admin: failed to load orders:", err));
+      
+    storeService.getSettings()
+      .then(setSettingsForm)
+      .catch(err => console.error("Admin: failed to load settings:", err));
+      
+    storeService.getCoupons()
+      .then(setCoupons)
+      .catch(err => console.error("Admin: failed to load coupons:", err));
+  };
+
+  const openCouponAddModal = () => {
+    setEditingCoupon(null);
+    setCouponForm({
+      code: '',
+      type: 'percent',
+      value: 0,
+      minSpend: 0,
+      isActive: true
+    });
+    setIsCouponModalOpen(true);
+  };
+
+  const openCouponEditModal = (coupon: Coupon) => {
+    setEditingCoupon(coupon);
+    setCouponForm({
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.value,
+      minSpend: coupon.minSpend || 0,
+      isActive: coupon.isActive
+    });
+    setIsCouponModalOpen(true);
+  };
+
+  const handleCouponSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCoupon) {
+        const updatedCoupon: Coupon = {
+          ...editingCoupon,
+          ...couponForm,
+          code: couponForm.code.toUpperCase().trim()
+        };
+        await storeService.updateCoupon(updatedCoupon);
+      } else {
+        await storeService.addCoupon(couponForm);
+      }
+      setIsCouponModalOpen(false);
+      const coupons = await storeService.getCoupons();
+      setCoupons(coupons);
+    } catch (error) {
+      console.error("Failed to save coupon:", error);
+    }
+  };
+
+  const handleCouponDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this coupon?")) {
+      try {
+        await storeService.deleteCoupon(id);
+        const coupons = await storeService.getCoupons();
+        setCoupons(coupons);
+      } catch (error) {
+        console.error("Failed to delete coupon:", error);
+      }
+    }
+  };
+
+  const handleCouponToggleActive = async (coupon: Coupon) => {
+    try {
+      const updated = { ...coupon, isActive: !coupon.isActive };
+      await storeService.updateCoupon(updated);
+      const coupons = await storeService.getCoupons();
+      setCoupons(coupons);
+    } catch (error) {
+      console.error("Failed to toggle coupon active state:", error);
+    }
   };
 
   const openAddModal = () => {
@@ -313,6 +405,17 @@ const Admin: React.FC = () => {
             }`}
           >
              <ShoppingBag size={16} /> Orders ({orders.length})
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('coupons')}
+            className={`px-5 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
+              activeTab === 'coupons' 
+                ? 'bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 shadow-md ring-1 ring-black/5' 
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+             <Tag size={16} /> Promo Coupons ({coupons.length})
           </button>
 
           <button 
@@ -680,6 +783,9 @@ const Admin: React.FC = () => {
                                 <p className="flex justify-between"><span className="text-gray-500">Phone:</span> <span className="font-medium text-gray-900 dark:text-white">{order.customerPhone}</span></p>
                                 <p className="flex justify-between"><span className="text-gray-500">Address:</span> <span className="font-medium text-gray-900 dark:text-white text-right">{order.shippingAddress || 'N/A'}</span></p>
                                 {order.userEmail && <p className="flex justify-between"><span className="text-gray-500">User Email:</span> <span className="font-medium text-gray-900 dark:text-white">{order.userEmail}</span></p>}
+                                {order.couponCode && (
+                                  <p className="flex justify-between text-green-600 dark:text-green-400 font-bold"><span className="text-gray-500">Promo Code:</span> <span>{order.couponCode} (-{CURRENCY_SYMBOL} {(order.couponDiscount || 0).toLocaleString()})</span></p>
+                                )}
                               </div>
                             </div>
                             <div>
@@ -848,6 +954,192 @@ const Admin: React.FC = () => {
             </form>
           </div>
         )}
+
+        {activeTab === 'coupons' && (
+          <div className="p-8 space-y-8 animate-fade-in-up">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-gray-150 dark:border-gray-800 pb-5">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Tag className="text-purple-600 dark:text-purple-400" size={22} />
+                  Promo Coupon Codes
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Manage active discount and promotional codes for customer checkout on your store.
+                </p>
+              </div>
+              <button 
+                onClick={openCouponAddModal}
+                className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-2 w-fit cursor-pointer"
+              >
+                <Plus size={16} /> Create Coupon
+              </button>
+            </div>
+
+            {coupons.length === 0 ? (
+              <div className="text-center py-12 px-4 rounded-xl border border-dashed border-gray-205 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+                <Tag size={40} className="mx-auto text-gray-400/50 mb-3" />
+                <p className="font-bold text-sm text-gray-900 dark:text-white">No promo codes yet</p>
+                <p className="text-xs text-gray-400 mt-1 mb-4">Create your first promo code to incentivize checkout transactions.</p>
+                <button 
+                  onClick={openCouponAddModal}
+                  className="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg text-xs cursor-pointer"
+                >
+                  Create Promo Code
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm text-gray-600 dark:text-gray-300">
+                  <thead>
+                    <tr className="border-b border-gray-150 dark:border-gray-800 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="py-3.5 px-4">Coupon Code</th>
+                      <th className="py-3.5 px-4">Type</th>
+                      <th className="py-3.5 px-4">Value</th>
+                      <th className="py-3.5 px-4">Min Spend</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map((coupon) => (
+                      <tr key={coupon.id} className="border-b border-gray-100 dark:border-zinc-850 hover:bg-gray-50/50 dark:hover:bg-zinc-850/20 transition-colors">
+                        <td className="py-4 px-4">
+                          <span className="font-bold text-gray-900 dark:text-white bg-purple-50 dark:bg-purple-950/20 px-2.5 py-1 rounded-md text-xs font-mono tracking-wider border border-purple-100 dark:border-purple-900/10">
+                            {coupon.code}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 capitalize font-semibold">{coupon.type}</td>
+                        <td className="py-4 px-4 font-bold text-gray-900 dark:text-white">
+                          {coupon.type === 'percent' ? `${coupon.value}%` : `${CURRENCY_SYMBOL} ${coupon.value.toLocaleString()}`}
+                        </td>
+                        <td className="py-4 px-4 font-medium text-gray-500 dark:text-gray-400">
+                          {coupon.minSpend ? `${CURRENCY_SYMBOL} ${coupon.minSpend.toLocaleString()}` : 'None'}
+                        </td>
+                        <td className="py-4 px-4">
+                          <button
+                            onClick={() => handleCouponToggleActive(coupon)}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-colors cursor-pointer capitalize ${
+                              coupon.isActive 
+                                ? 'bg-green-100/60 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200/50 dark:border-green-900/25' 
+                                : 'bg-gray-100/60 dark:bg-zinc-800 text-gray-500 border-gray-250 dark:border-zinc-700'
+                            }`}
+                          >
+                            {coupon.isActive ? 'Active' : 'Inactive'}
+                          </button>
+                        </td>
+                        <td className="py-4 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button 
+                              onClick={() => openCouponEditModal(coupon)}
+                              className="p-1 px-2.5 hover:bg-gray-150 dark:hover:bg-zinc-800 text-purple-600 dark:text-purple-400 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleCouponDelete(coupon.id)}
+                              className="p-1 px-2.5 hover:bg-red-50 dark:hover:bg-red-950/10 text-red-500 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+      {/* Add/Edit Coupon Modal */}
+      {isCouponModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsCouponModalOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up border border-gray-200 dark:border-gray-800">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                {editingCoupon ? 'Edit Promo Coupon' : 'Create Promo Coupon'}
+              </h2>
+              <button onClick={() => setIsCouponModalOpen(false)} className="p-1.5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors text-gray-500 cursor-pointer">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCouponSave} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 font-sans">Coupon Code</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. SAVE10"
+                  value={couponForm.code}
+                  onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase().trim() })}
+                  className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 outline-none text-gray-900 dark:text-white uppercase font-bold font-mono tracking-wider text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 font-sans">Discount Type</label>
+                  <select 
+                    value={couponForm.type}
+                    onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value as 'percent' | 'fixed' })}
+                    className="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-purple-500 text-sm font-semibold"
+                  >
+                    <option value="percent">Percentage (%)</option>
+                    <option value="fixed">Fixed LKR Amount</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 font-sans">Deduction Value</label>
+                  <input 
+                    type="number" 
+                    required
+                    min="1"
+                    value={couponForm.value || ''}
+                    onChange={(e) => setCouponForm({ ...couponForm, value: parseFloat(e.target.value) || 0 })}
+                    placeholder={couponForm.type === 'percent' ? '15' : '500'}
+                    className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 outline-none text-gray-900 dark:text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 font-sans">Minimum Spend ({CURRENCY_SYMBOL}, optional)</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  value={couponForm.minSpend || ''}
+                  onChange={(e) => setCouponForm({ ...couponForm, minSpend: parseFloat(e.target.value) || 0 })}
+                  placeholder="e.g. 2000"
+                  className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 outline-none text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-gray-50/50 dark:bg-black/10 rounded-xl">
+                <input 
+                  type="checkbox" 
+                  id="coupon_active"
+                  checked={couponForm.isActive}
+                  onChange={(e) => setCouponForm({ ...couponForm, isActive: e.target.checked })}
+                  className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300"
+                />
+                <label htmlFor="coupon_active" className="text-gray-800 dark:text-gray-200 text-sm font-medium select-none cursor-pointer">
+                  Activate Promo Coupon Immediately
+                </label>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer text-sm"
+              >
+                <Save size={16} /> {editingCoupon ? 'Update Promo Coupon' : 'Create Promo Coupon'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Product Modal */}
       {isModalOpen && (

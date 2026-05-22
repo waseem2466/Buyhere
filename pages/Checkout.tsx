@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { CURRENCY_SYMBOL, WHATSAPP_NUMBER } from '../constants';
 import { storeService } from '../services/storeService';
-import { StoreSettings } from '../types';
+import { StoreSettings, Coupon } from '../types';
 
 const Checkout: React.FC = () => {
   const { cart, cartTotal, clearCart } = useCart();
@@ -14,6 +14,11 @@ const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -23,7 +28,9 @@ const Checkout: React.FC = () => {
 
   // Pre-fill data if user is logged in
   useEffect(() => {
-    storeService.getSettings().then(setSettings);
+    storeService.getSettings()
+      .then(setSettings)
+      .catch(err => console.error("Checkout: failed to fetch settings:", err));
 
     if (user) {
       setFormData(prev => ({
@@ -32,6 +39,52 @@ const Checkout: React.FC = () => {
       }));
     }
   }, [user]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setCouponError('');
+    setCouponSuccess('');
+    
+    try {
+      const coupon = await storeService.getCouponByCode(couponCodeInput);
+      if (!coupon) {
+        setCouponError('Invalid promo code. Please try again.');
+        return;
+      }
+      if (!coupon.isActive) {
+        setCouponError('This promo code is no longer active.');
+        return;
+      }
+      if (coupon.minSpend && cartTotal < coupon.minSpend) {
+        setCouponError(`Minimum purchase of ${CURRENCY_SYMBOL} ${coupon.minSpend.toLocaleString()} is required.`);
+        return;
+      }
+      
+      setAppliedCoupon(coupon);
+      setCouponSuccess(`Promo code "${coupon.code}" applied!`);
+    } catch (err) {
+      setCouponError('Error verifying promo code.');
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCodeInput('');
+    setCouponSuccess('');
+    setCouponError('');
+  };
+
+  const getDiscountAmount = () => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.type === 'percent') {
+      return Math.round((cartTotal * appliedCoupon.value) / 100);
+    } else {
+      return Math.min(cartTotal, appliedCoupon.value);
+    }
+  };
+
+  const discountAmount = getDiscountAmount();
+  const finalTotal = cartTotal - discountAmount;
 
   if (cart.length === 0) {
     return (
@@ -53,18 +106,25 @@ const Checkout: React.FC = () => {
     const fullAddress = `${formData.address}, ${formData.city}`;
 
     // 1. Create Order in Backend (LocalStorage / Firestore)
-    const createdOrder = await storeService.createOrder({
-      items: cart,
-      total: cartTotal,
-      customerName: formData.name,
-      customerPhone: formData.phone,
-      shippingAddress: fullAddress, // Save the address
-      userEmail: user?.email, 
-      status: 'pending'
-    });
+    let createdOrder = null;
+    try {
+      createdOrder = await storeService.createOrder({
+        items: cart,
+        total: finalTotal,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        shippingAddress: fullAddress, // Save the address
+        userEmail: user?.email, 
+        status: 'pending',
+        couponCode: appliedCoupon?.code || undefined,
+        couponDiscount: discountAmount || undefined
+      });
+    } catch (orderError) {
+      console.warn("Could not save order details to database (operating in offline/resilient fallback mode):", orderError);
+    }
 
-    // 1.5. If Custom WhatsApp Automation Webhook is enabled, dispatch order JSON to the agent
-    if (settings?.whatsappWebhookEnabled && settings?.whatsappWebhookUrl) {
+    // 1.5. If Custom WhatsApp Automation Webhook is enabled and order was successfully created, dispatch order JSON to the agent
+    if (createdOrder && settings?.whatsappWebhookEnabled && settings?.whatsappWebhookUrl) {
       try {
         await fetch(settings.whatsappWebhookUrl, {
           method: 'POST',
@@ -93,12 +153,19 @@ const Checkout: React.FC = () => {
       return `• ${item.title}${variantStr} (x${item.qty}) - ${CURRENCY_SYMBOL} ${(unitPrice * item.qty).toLocaleString()}`;
     }).join('%0a');
     
+    let couponMessagePart = '';
+    if (appliedCoupon) {
+      couponMessagePart = `*Subtotal:* ${CURRENCY_SYMBOL} ${cartTotal.toLocaleString()}%0a` +
+        `*Coupon Code:* ${appliedCoupon.code} (-${CURRENCY_SYMBOL} ${discountAmount.toLocaleString()})%0a`;
+    }
+
     const message = `*New Order Request* 🛍️%0a%0a` +
       `*Customer:* ${formData.name}%0a` +
       `*Phone:* ${formData.phone}%0a` +
       `*Address:* ${fullAddress}%0a%0a` +
       `*Items:*%0a${itemsList}%0a%0a` +
-      `*Total:* ${CURRENCY_SYMBOL} ${cartTotal.toLocaleString()}`;
+      couponMessagePart +
+      `*Total:* ${CURRENCY_SYMBOL} ${finalTotal.toLocaleString()}`;
 
     // 3. Clear Cart & Redirect
     clearCart();
@@ -164,18 +231,62 @@ const Checkout: React.FC = () => {
             })}
           </div>
           
+          {/* Coupon Promo Widget */}
+          <div className="mt-6 pt-6 border-t border-gray-200/30 dark:border-gray-700/30">
+            <h3 className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-3">🏷️ Have a Promo Code?</h3>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="e.g. WELCOME10"
+                value={couponCodeInput}
+                onChange={(e) => {
+                  setCouponCodeInput(e.target.value);
+                  setCouponError('');
+                  setCouponSuccess('');
+                }}
+                disabled={!!appliedCoupon}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/50 dark:bg-zinc-800 dark:text-white dark:border-gray-700 border border-gray-200 focus:ring-2 focus:ring-purple-500 outline-none uppercase text-xs font-bold font-mono tracking-wider"
+              />
+              {appliedCoupon ? (
+                <button 
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="px-4 py-2 bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 font-bold rounded-xl text-xs hover:bg-red-100 transition-colors cursor-pointer"
+                >
+                  Remove
+                </button>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  className="px-5 py-2.5 bg-purple-650 text-white font-bold rounded-xl text-xs hover:bg-purple-700 transition-colors cursor-pointer"
+                >
+                  Apply
+                </button>
+              )}
+            </div>
+            {couponError && <p className="text-red-500 text-xs font-semibold mt-2">{couponError}</p>}
+            {couponSuccess && <p className="text-green-600 dark:text-green-400 text-xs font-bold mt-2">{couponSuccess}</p>}
+          </div>
+
           <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50 space-y-2">
-            <div className="flex justify-between text-gray-600 dark:text-gray-300">
+            <div className="flex justify-between text-gray-600 dark:text-gray-300 text-sm">
               <span>Subtotal</span>
               <span>{CURRENCY_SYMBOL} {cartTotal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-gray-600 dark:text-gray-300">
+            {appliedCoupon && (
+              <div className="flex justify-between text-green-600 dark:text-green-400 text-sm font-semibold">
+                <span>Promo Discount ({appliedCoupon.code})</span>
+                <span>-{CURRENCY_SYMBOL} {discountAmount.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-gray-600 dark:text-gray-300 text-sm">
               <span>Shipping</span>
               <span className="text-green-600 dark:text-green-400 font-medium">Calculated via WhatsApp</span>
             </div>
-            <div className="flex justify-between text-2xl font-bold text-gray-900 dark:text-white pt-4">
+            <div className="flex justify-between text-2xl font-bold text-gray-900 dark:text-white pt-4 border-t border-gray-100 dark:border-zinc-800">
               <span>Total</span>
-              <span>{CURRENCY_SYMBOL} {cartTotal.toLocaleString()}</span>
+              <span>{CURRENCY_SYMBOL} {finalTotal.toLocaleString()}</span>
             </div>
           </div>
         </div>

@@ -24,20 +24,25 @@ const ProductDetails: React.FC = () => {
 
   useEffect(() => {
     if (slug) {
-      storeService.getProductBySlug(slug).then(data => {
-        setProduct(data || null);
-        if (data) {
-          const availableSizes = data.sizes?.filter(s => !data.outOfStockSizes?.includes(s)) || [];
-          if (availableSizes.length > 0) {
-            setSelectedSize(availableSizes[0]);
-          } else if (data.sizes && data.sizes.length > 0) {
-            setSelectedSize(data.sizes[0]);
+      storeService.getProductBySlug(slug)
+        .then(data => {
+          setProduct(data || null);
+          if (data) {
+            const availableSizes = data.sizes?.filter(s => !data.outOfStockSizes?.includes(s)) || [];
+            if (availableSizes.length > 0) {
+              setSelectedSize(availableSizes[0]);
+            } else if (data.sizes && data.sizes.length > 0) {
+              setSelectedSize(data.sizes[0]);
+            }
+            if (data.colors && data.colors.length > 0) setSelectedColor(data.colors[0]);
+            if (data.materials && data.materials.length > 0) setSelectedMaterial(data.materials[0]);
           }
-          if (data.colors && data.colors.length > 0) setSelectedColor(data.colors[0]);
-          if (data.materials && data.materials.length > 0) setSelectedMaterial(data.materials[0]);
-        }
-        setLoading(false);
-      });
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("ProductDetails: failed to fetch product details:", err);
+          setLoading(false);
+        });
     }
   }, [slug]);
 

@@ -45,6 +45,18 @@ export interface Order {
   shippingAddress: string; // Added address field
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered';
   createdAt: string;
+  couponCode?: string;
+  couponDiscount?: number;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  minSpend?: number;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface FilterState {

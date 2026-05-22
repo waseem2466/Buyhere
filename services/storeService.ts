@@ -13,7 +13,7 @@ import {
   setDoc
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { Product, Order, StoreSettings } from '../types';
+import { Product, Order, StoreSettings, Coupon } from '../types';
 import { MOCK_PRODUCTS } from '../constants';
 
 enum OperationType {
@@ -43,24 +43,28 @@ interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errInfo = {
+    error: errorMessage,
     operationType,
-    path
+    path,
+    userId: auth.currentUser?.uid || null,
+    email: auth.currentUser?.email || null,
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  
+  let serialized = "";
+  try {
+    serialized = JSON.stringify(errInfo);
+  } catch (e) {
+    serialized = JSON.stringify({
+      error: String(errorMessage),
+      operationType: String(operationType),
+      path: String(path)
+    });
+  }
+  
+  console.error('Firestore Error: ', serialized);
+  throw new Error(serialized);
 }
 
 class StoreService {
@@ -253,6 +257,68 @@ class StoreService {
     } catch (error) {
       console.warn("Failed to save settings to Firestore, saved to local storage:", error);
       localStorage.setItem('store_settings', JSON.stringify(settings));
+    }
+  }
+
+  // Coupons
+  async getCoupons(): Promise<Coupon[]> {
+    try {
+      const q = query(collection(db, 'coupons'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const coupons: Coupon[] = [];
+      querySnapshot.forEach((doc) => {
+        coupons.push({ id: doc.id, ...doc.data() } as Coupon);
+      });
+      return coupons;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, 'coupons');
+    }
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    try {
+      const q = query(collection(db, 'coupons'), where("code", "==", code.toUpperCase().trim()));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as Coupon;
+      }
+      return undefined;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.GET, `coupons/code/${code}`);
+    }
+  }
+
+  async addCoupon(coupon: Omit<Coupon, 'id' | 'createdAt'>): Promise<Coupon> {
+    const finalCoupon = {
+      ...coupon,
+      code: coupon.code.toUpperCase().trim(),
+      createdAt: new Date().toISOString()
+    };
+    try {
+      const docRef = await addDoc(collection(db, 'coupons'), finalCoupon);
+      return { id: docRef.id, ...finalCoupon } as Coupon;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'coupons');
+    }
+  }
+
+  async updateCoupon(coupon: Coupon): Promise<void> {
+    try {
+      const couponRef = doc(db, 'coupons', coupon.id);
+      const { id, ...data } = coupon;
+      data.code = data.code.toUpperCase().trim();
+      await updateDoc(couponRef, data);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `coupons/${coupon.id}`);
+    }
+  }
+
+  async deleteCoupon(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'coupons', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `coupons/${id}`);
     }
   }
 }
