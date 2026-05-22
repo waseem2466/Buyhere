@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Star, ShieldCheck, Truck } from 'lucide-react';
-import { storeService } from '../services/storeService.ts';
-import { Product } from '../types.ts';
-import ProductCard from '../components/ProductCard.tsx';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Star, ShieldCheck, Truck, Zap, Sparkles, Smartphone, ShoppingBag, Wallet, Laptop, Heart } from 'lucide-react';
+import { storeService } from '../services/storeService';
+import { Product } from '../types';
+import ProductCard from '../components/ProductCard';
+import { CATEGORIES } from '../constants';
 
 const Home: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const products = await storeService.getProducts();
-        setFeaturedProducts(products.filter(p => p.featured).slice(0, 4));
+        // Filter featured products or get the first 3
+        const featured = products.filter(p => p.featured);
+        setFeaturedProducts(featured.length > 0 ? featured.slice(0, 3) : products.slice(0, 3));
+      } catch (error) {
+        console.error("Error loading products:", error);
       } finally {
         setLoading(false);
       }
@@ -21,123 +27,305 @@ const Home: React.FC = () => {
     loadData();
   }, []);
 
+  // Category Icon & Details Map
+  const categoryMeta: Record<string, { icon: string; desc: string; color: string }> = {
+    "Baby Items": { icon: "🍼", desc: "Safe, organic infant goods", color: "from-pink-500/20 to-purple-500/20" },
+    "Footwear": { icon: "👟", desc: "Premium sport & class shoes", color: "from-blue-500/20 to-indigo-500/20" },
+    "Hand Bags": { icon: "👜", desc: "Elegant designer bags", color: "from-purple-500/20 to-fuchsia-500/20" },
+    "Wallets": { icon: "💼", desc: "Genuine leather bi-folds", color: "from-amber-500/20 to-orange-500/20" },
+    "Kitchen": { icon: "🍳", desc: "Chef-grade accessories", color: "from-teal-500/20 to-cyan-500/20" },
+    "Electrical": { icon: "🔌", desc: "Advanced smart gear", color: "from-red-500/20 to-yellow-500/20" },
+    "Toys": { icon: "🧸", desc: "Creative block playsets", color: "from-sky-500/20 to-emerald-500/20" },
+    "Beauty": { icon: "✨", desc: "Nourishing vitamin serums", color: "from-fuchsia-500/20 to-rose-500/20" },
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
+  };
+
   return (
-    <div className="space-y-20 pb-20">
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8 animate-fade-in-up">
-            <div className="inline-block px-4 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/50 backdrop-blur-md text-purple-700 dark:text-purple-300 font-medium text-sm shadow-sm">
-              New Collection 2024
-            </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight">
-              Discover the <br/>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-red-500">
-                Future of Style
+    <div className="min-h-screen bg-neutral-950 text-white relative overflow-x-hidden font-sans">
+      
+      {/* Immersive Dark Radial Background Glows */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[5%] right-[5%] w-[45vw] h-[45vw] rounded-full bg-indigo-600/15 blur-[120px] filter animate-pulse duration-[8000ms]"></div>
+        <div className="absolute top-[40%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-violet-600/10 blur-[130px] filter"></div>
+        <div className="absolute bottom-[5%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-cyan-600/15 blur-[120px] filter animate-pulse duration-[6000ms]"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+      </div>
+
+      <div className="relative z-10">
+        
+        {/* HERO SECTION */}
+        <section className="max-w-7xl mx-auto px-6 pt-36 pb-20 grid lg:grid-cols-2 gap-14 items-center">
+          <div className="space-y-8 animate-fade-in">
+            {/* Sri Lanka Luxe Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium tracking-wide shadow-2xl backdrop-blur-md">
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
               </span>
+              <span>✨ Sri Lanka's Luxury Smart Marketplace</span>
+            </div>
+
+            {/* Dynamic Typography Header */}
+            <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tight">
+              Smart Shopping
+              <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-450 text-transparent bg-clip-text animate-gradient-text">
+                Starts Here
+              </span>
+              In One Place
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg leading-relaxed">
-              Experience the clarity of premium shopping. Handpicked essentials curated for the modern aesthetic lifestyle.
+
+            {/* Structured Description */}
+            <p className="text-gray-300 text-lg leading-relaxed max-w-xl">
+              Discover premium fashion, footwear, handbags, beauty products, smart electronics, kitchen accessories and thousands of verified household products in one modern luxury experience.
             </p>
-            <div className="flex gap-4">
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link 
                 to="/shop" 
-                className="px-8 py-4 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-2"
+                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-cyan-500 text-white font-bold hover:scale-105 active:scale-95 transition duration-300 shadow-2xl shadow-indigo-500/20 flex items-center gap-2"
               >
-                Shop Now <ArrowRight size={18} />
+                <span>Shop Now</span>
+                <ArrowRight size={18} />
               </Link>
-              <button className="px-8 py-4 glass-card rounded-xl font-semibold text-gray-800 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-white/10 transition-colors">
-                View Catalog
-              </button>
+
+              <a 
+                href="#categories" 
+                className="px-8 py-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl hover:bg-white/10 transition-colors font-semibold"
+              >
+                Explore Categories
+              </a>
+            </div>
+
+            {/* Multi-counter Stats */}
+            <div className="grid grid-cols-3 gap-4 pt-10 border-t border-white/5">
+              <div className="p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">5K+</h2>
+                <p className="text-gray-400 mt-1 text-xs uppercase font-semibold tracking-wider">Products</p>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">2K+</h2>
+                <p className="text-gray-400 mt-1 text-xs uppercase font-semibold tracking-wider">Customers</p>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">24/7</h2>
+                <p className="text-gray-400 mt-1 text-xs uppercase font-semibold tracking-wider">Support</p>
+              </div>
             </div>
           </div>
 
-          <div className="relative animate-float">
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-400 to-pink-400 rounded-full blur-[100px] opacity-40"></div>
-            <div className="relative z-10 glass-card p-6 rounded-3xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              <img 
-                src="https://picsum.photos/800/800?random=hero" 
-                alt="Hero Product" 
-                className="rounded-2xl shadow-lg w-full object-cover aspect-[4/3]"
+          {/* Hero Premium Visual Feature Card */}
+          <div className="relative group">
+            {/* Background Blur Orbs */}
+            <div className="absolute -top-10 -left-10 w-48 h-48 bg-violet-600/20 blur-3xl rounded-full" />
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-cyan-600/20 blur-3xl rounded-full" />
+
+            {/* Frame Container */}
+            <div className="relative overflow-hidden bg-white/5 border border-white/15 rounded-[40px] p-6 backdrop-blur-2xl shadow-3xl">
+              <img
+                src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1200&auto=format&fit=crop"
+                alt="Shopora Banner Fashion Model"
+                className="w-full h-[450px] object-cover rounded-[30px] filter brightness-90 group-hover:scale-105 transition-transform duration-700 ease-out"
               />
-              <div className="absolute bottom-10 left-10 right-10 glass-panel p-4 rounded-xl flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Featured</p>
-                  <p className="font-bold text-gray-800 dark:text-gray-100">Premium Audio Series</p>
-                </div>
-                <div className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-md">
-                  <ArrowRight className="text-gray-800 dark:text-white" size={20} />
+
+              {/* Floating Trending Banner overlaid */}
+              <div className="absolute bottom-10 left-10 right-10 bg-black/40 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 shadow-2xl">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs text-indigo-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                      <Sparkles size={12} /> Trending Collection
+                    </p>
+                    <h3 className="text-xl font-bold mt-1 text-white">Classic Mode Arrivals</h3>
+                  </div>
+
+                  <Link 
+                    to="/shop" 
+                    className="px-5 py-3 rounded-2xl bg-white text-black font-semibold hover:bg-neutral-200 transition-colors text-sm"
+                  >
+                    Buy Now
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Grid */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { icon: ShieldCheck, title: "Secure Payments", desc: "100% protected transactions via WhatsApp or Card" },
-            { icon: Truck, title: "Fast Delivery", desc: "Island-wide delivery within 2-3 working days" },
-            { icon: Star, title: "Premium Quality", desc: "Authentic products with manufacturer warranty" }
-          ].map((feature, i) => (
-            <div key={i} className="glass-card p-8 rounded-2xl flex flex-col items-center text-center hover:bg-white/60 dark:hover:bg-white/5 transition-colors">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center text-purple-600 dark:text-purple-300 mb-4 shadow-inner">
-                <feature.icon size={28} />
+
+        {/* TOP CATEGORIES SECTION */}
+        <section id="categories" className="max-w-7xl mx-auto px-6 py-20 scroll-mt-24">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-4">
+            <div>
+              <div className="text-sm font-bold tracking-widest text-violet-400 uppercase mb-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400" /> Catalog Highlights
               </div>
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">{feature.title}</h3>
-              <p className="text-gray-500 dark:text-gray-400">{feature.desc}</p>
+              <h2 className="text-4xl font-extrabold text-white">Top Categories</h2>
+              <p className="text-gray-400 mt-2 text-sm">
+                Explore our handpicked luxury collection tailored for premium tastes
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Featured Products */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Trending Now</h2>
-            <p className="text-gray-500 dark:text-gray-400">Top picks for this week</p>
+            <Link 
+              to="/shop" 
+              className="px-6 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-sm font-semibold text-gray-200"
+            >
+              View Shop
+            </Link>
           </div>
-          <Link to="/shop" className="text-purple-600 dark:text-purple-400 font-medium hover:text-purple-800 dark:hover:text-purple-300 flex items-center gap-1">
-            View All <ArrowRight size={16} />
-          </Link>
-        </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1,2,3,4].map(n => (
-              <div key={n} className="h-80 glass-card rounded-2xl animate-pulse"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {CATEGORIES.map((category, index) => {
+              const meta = categoryMeta[category] || { icon: "✨", desc: "Premium quality selection", color: "from-white/10 to-transparent" };
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleCategoryClick(category)}
+                  className="group relative p-6 rounded-3xl bg-neutral-900/50 border border-white/5 hover:border-white/15 backdrop-blur-xl hover:-translate-y-2 hover:bg-neutral-900 transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  {/* Subtle Gradient Glow in Corner */}
+                  <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${meta.color} blur-xl rounded-full opacity-50`} />
+                  
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 flex items-center justify-center text-2xl mb-5 shadow-lg group-hover:scale-110 transition-transform">
+                    {meta.icon}
+                  </div>
 
-      {/* Newsletter / CTA */}
-      <section className="max-w-7xl mx-auto px-6">
-        <div className="glass-panel rounded-3xl p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 z-[-1]"></div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Join the Inner Circle</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto">Subscribe to get exclusive access to new drops, special offers, and secret sales.</p>
-          <div className="flex max-w-md mx-auto gap-2">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="flex-1 px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-white/10 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-            />
-            <button className="px-6 py-3 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              Subscribe
-            </button>
+                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">{category}</h3>
+                  <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                    {meta.desc}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
+
+
+        {/* TRENDING PRODUCTS */}
+        <section className="max-w-7xl mx-auto px-6 py-20">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-4">
+            <div>
+              <div className="text-sm font-bold tracking-widest text-cyan-450 uppercase mb-2 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" /> Hot Right Now
+              </div>
+              <h2 className="text-4xl font-extrabold text-white">Trending Products</h2>
+              <p className="text-gray-400 mt-2 text-sm">
+                Most popular products on Shopora.lk updated live
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="/shop"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 font-bold hover:scale-105 active:scale-95 transition-transform text-sm"
+              >
+                Flash Sale live
+              </Link>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-96 rounded-[2.5rem] bg-neutral-900 border border-white/5 animate-pulse"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </section>
+
+
+        {/* ISLANDWIDE DELIVERY & LANKA QR PAYMENT ASSURANCE */}
+        <section className="max-w-7xl mx-auto px-6 pb-24">
+          <div className="relative overflow-hidden rounded-[40px] border border-white/10 bg-gradient-to-r from-violet-950/30 via-indigo-950/20 to-neutral-900 backdrop-blur-3xl p-8 md:p-12 lg:p-16">
+            <div className="absolute top-0 right-0 w-[30%] h-[30%] bg-violet-600/10 blur-[90px] rounded-full" />
+            
+            <div className="relative grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="inline-flex px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-wider text-cyan-300">
+                  🚚 Island Wide Fast Delivery
+                </div>
+
+                <h2 className="text-4xl lg:text-5xl font-black leading-tight text-white">
+                  Upgrade Your Sri Lankan Shopping Experience
+                </h2>
+
+                <p className="text-gray-300 text-base leading-relaxed max-w-xl">
+                  Shopora.lk ensures premium buyer protection. Shop secure orders using PayPal, Lanka QR local deposits, or standard Cash on Delivery (COD) service directly via WhatsApp.
+                </p>
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <Link 
+                    to="/shop" 
+                    className="px-7 py-3.5 rounded-2xl bg-white text-black font-semibold hover:bg-neutral-200 hover:scale-105 transition-all outline-none"
+                  >
+                    Start Shopping
+                  </Link>
+
+                  <Link 
+                    to="/contact" 
+                    className="px-7 py-3.5 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 transition-colors font-medium"
+                  >
+                    Become a Partner
+                  </Link>
+                </div>
+              </div>
+
+              {/* Bento Grid Features Layout */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 rounded-3xl bg-neutral-900 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 mb-4 font-bold text-sm">
+                    QR
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Lanka QR</h3>
+                  <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                    Scan to pay locally via central bank supported QR codes.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-neutral-900 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 font-bold text-sm">
+                    PP
+                  </div>
+                  <h3 className="text-lg font-bold text-white">PayPal</h3>
+                  <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                    Worry-free international online checkout gateway.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-neutral-950/50 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 mb-4 font-bold text-sm">
+                    COD
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Cash on Delivery</h3>
+                  <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                    Verify goods and pay on doorstep arrival island-wide.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-neutral-950/50 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-4 font-bold text-sm">
+                    24/7
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Active Support</h3>
+                  <p className="text-gray-400 text-xs mt-2 leading-relaxed">
+                    Responsive agent chats on WhatsApp for any order inquiries.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 };

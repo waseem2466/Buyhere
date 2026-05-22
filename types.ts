@@ -11,10 +11,21 @@ export interface Product {
   images: string[];
   featured: boolean;
   createdAt: string;
+  studioFrame?: 'minimalist' | 'velvet' | 'marble' | 'glass' | 'wood' | 'none';
+  studioReflection?: boolean;
+  studioShadow?: boolean;
+  studioScale?: number;
+  sizes?: string[];
+  outOfStockSizes?: string[];
+  colors?: string[];
+  materials?: string[];
 }
 
 export interface CartItem extends Product {
   qty: number;
+  selectedSize?: string;
+  selectedColor?: string;
+  selectedMaterial?: string;
 }
 
 export interface User {
@@ -41,4 +52,10 @@ export interface FilterState {
   minPrice: number;
   maxPrice: number;
   search: string;
+}
+
+export interface StoreSettings {
+  whatsappNumber: string;
+  whatsappWebhookEnabled: boolean;
+  whatsappWebhookUrl: string;
 }

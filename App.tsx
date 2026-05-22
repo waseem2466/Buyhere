@@ -1,20 +1,20 @@
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { CartProvider } from './context/CartContext.tsx';
-import { ThemeProvider } from './context/ThemeContext.tsx';
-import { AuthProvider } from './context/AuthContext.tsx';
-import Navbar from './components/Navbar.tsx';
-import CartSidebar from './components/CartSidebar.tsx';
-import Footer from './components/Footer.tsx';
-import Home from './pages/Home.tsx';
-import Shop from './pages/Shop.tsx';
-import ProductDetails from './pages/ProductDetails.tsx';
-import Checkout from './pages/Checkout.tsx';
-import Admin from './pages/Admin.tsx';
-import Contact from './pages/Contact.tsx';
-import Login from './pages/Login.tsx';
-import Profile from './pages/Profile.tsx';
-import Privacy from './pages/Privacy.tsx';
+import { CartProvider } from './context/CartContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import CartSidebar from './components/CartSidebar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Shop from './pages/Shop';
+import ProductDetails from './pages/ProductDetails';
+import Checkout from './pages/Checkout';
+import Admin from './pages/Admin';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+import Privacy from './pages/Privacy';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -31,7 +31,7 @@ const App: React.FC = () => {
         <CartProvider>
           <HashRouter>
             <ScrollToTop />
-            <div className="min-h-screen flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+            <div className="min-h-screen flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300 overflow-x-hidden w-full relative">
               <Navbar />
               <CartSidebar />
               

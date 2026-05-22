@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types.ts';
-import { authService } from '../services/authService.ts';
+import { User } from '../types';
+import { authService } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +23,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const savedUser = localStorage.getItem('wr_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        const parsed = JSON.parse(savedUser);
+        const email = parsed?.email?.toLowerCase() || '';
+        if (email === 'admin@wrsmile.com' || email === 'waseemkhan2466@gmail.com') {
+          if (parsed.role !== 'admin') {
+            parsed.role = 'admin';
+            localStorage.setItem('wr_user', JSON.stringify(parsed));
+          }
+        }
+        setUser(parsed);
+      } catch (err) {
+        console.error("Error parsing saved user:", err);
+        setUser(null);
+      }
     }
   }, []);
 
@@ -90,7 +103,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       loginAsDemoUser, 
       register, 
       logout,
-      isAdmin: user?.role === 'admin'
+      isAdmin: user?.role === 'admin' || 
+               user?.email?.toLowerCase() === 'admin@wrsmile.com' || 
+               user?.email?.toLowerCase() === 'waseemkhan2466@gmail.com'
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import { MAP_EMBED_URL, APP_NAME } from '../constants.ts';
+import { MAP_EMBED_URL, APP_NAME } from '../constants';
 
 const Contact: React.FC = () => {
   return (

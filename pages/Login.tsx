@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader, AlertCircle, Globe, ExternalLink, Info } from 'lucide-react';
-import { useAuth } from '../context/AuthContext.tsx';
-import { User as UserType } from '../types.ts';
+import { useAuth } from '../context/AuthContext';
+import { User as UserType } from '../types';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

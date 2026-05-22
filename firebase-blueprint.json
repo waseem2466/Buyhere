@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Premium shop products available to users on Shopora.lk",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Display title of product" },
+        "slug": { "type": "string", "description": "URL-friendly slug for indexing" },
+        "description": { "type": "string", "description": "Comprehensive descriptive copy of product features" },
+        "price_retail": { "type": "integer", "description": "Retail price in LKR" },
+        "price_wholesale": { "type": "integer", "description": "Wholesale price if available" },
+        "discount": { "type": "integer", "description": "Optional percentage discount" },
+        "stock": { "type": "integer", "description": "Available stock level in warehouse" },
+        "category": { "type": "string", "description": "Product category grouping" },
+        "images": { "type": "array", "description": "Array of Unsplash asset URLs" },
+        "featured": { "type": "boolean", "description": "Flag to showcase product on landing page" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "System generation ISO timestamp string" }
+      },
+      "required": ["title", "slug", "description", "price_retail", "stock", "category", "images", "featured", "createdAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "WhatsApp checkout orders stored for buyer protection, tracking, and delivery management",
+      "type": "object",
+      "properties": {
+        "userEmail": { "type": "string", "description": "Account email address of purchasing user" },
+        "items": { "type": "array", "description": "List of cart items with quantity and product details" },
+        "total": { "type": "integer", "description": "Sum total of transaction in LKR" },
+        "customerName": { "type": "string", "description": "Contact name of recipient customer" },
+        "customerPhone": { "type": "string", "description": "WhatsApp or mobile number of recipient" },
+        "shippingAddress": { "type": "string", "description": "Physical destination address in Sri Lanka" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "shipped", "delivered"], "description": "Fulfillment status of order" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "ISO timestamp of order creation" }
+      },
+      "required": ["items", "total", "customerName", "customerPhone", "shippingAddress", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Information stored for authenticated users including their login names, verified emails, and system roles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier of the authenticated user" },
+        "name": { "type": "string", "description": "Full display name of the user" },
+        "email": { "type": "string", "description": "User email address" },
+        "role": { "type": "string", "enum": ["customer", "admin"], "description": "System permissions role assignment" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "products/{productId}": {
+      "schema": "Product",
+      "description": "Collection of premium goods listed on Shopora.lk"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of local and international checkouts to follow up"
+    },
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profile data and privilege states"
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { Product, Order } from '../types.ts';
-import { MOCK_PRODUCTS } from '../constants.ts';
+import { Product, Order } from '../types';
+import { MOCK_PRODUCTS } from '../constants';
 
 // Simulating API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

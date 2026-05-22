@@ -4,12 +4,58 @@ import {
   signOut, 
   updateProfile,
   signInWithPopup,
-  GoogleAuthProvider,
-  User as FirebaseUser
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase.ts';
-import { User } from '../types.ts';
+import { auth, db } from '../firebase';
+import { User } from '../types';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -20,7 +66,7 @@ export const authService = {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const fbUser = userCredential.user;
 
-      // 2. Try to fetch extra profile data from Firestore
+      // 2. Fetch extra profile data from Firestore with secure error wrapping
       let role = 'customer';
       let name = fbUser.displayName || 'User';
 
@@ -32,11 +78,12 @@ export const authService = {
           name = userData.name || name;
         }
       } catch (firestoreError) {
-        console.warn("Could not fetch user profile from Firestore:", firestoreError);
+        handleFirestoreError(firestoreError, OperationType.GET, `users/${fbUser.uid}`);
       }
 
-      // Hardcoded admin check
-      if (email === 'admin@wrsmile.com') {
+      // Hardcoded admin overrides (Case-insensitive check)
+      const lowercaseEmail = email?.toLowerCase();
+      if (lowercaseEmail === 'admin@wrsmile.com' || lowercaseEmail === 'waseemkhan2466@gmail.com') {
         role = 'admin';
       }
 
@@ -59,8 +106,9 @@ export const authService = {
 
       await updateProfile(fbUser, { displayName: name });
 
-      // Determine role: Only specific email is admin
-      const role = email === 'admin@wrsmile.com' ? 'admin' : 'customer';
+      // Determine role: specific emails are admin (Case-insensitive check)
+      const lowercaseEmail = email?.toLowerCase();
+      const role = (lowercaseEmail === 'admin@wrsmile.com' || lowercaseEmail === 'waseemkhan2466@gmail.com') ? 'admin' : 'customer';
 
       const newUser: User = {
         uid: fbUser.uid,
@@ -73,7 +121,7 @@ export const authService = {
       try {
         await setDoc(doc(db, 'users', fbUser.uid), newUser);
       } catch (e) {
-        console.warn("Could not save user profile to Firestore (likely permission issue)", e);
+        handleFirestoreError(e, OperationType.CREATE, `users/${fbUser.uid}`);
       }
 
       return newUser;
@@ -101,8 +149,9 @@ export const authService = {
           role = userData.role || 'customer';
           name = userData.name || name;
         } else {
-          // New Google user - Create Firestore Doc
-          if (fbUser.email === 'admin@wrsmile.com') {
+          // New Google user - Create Firestore Doc (Case-insensitive check)
+          const lowercaseEmail = fbUser.email?.toLowerCase();
+          if (lowercaseEmail === 'admin@wrsmile.com' || lowercaseEmail === 'waseemkhan2466@gmail.com') {
             role = 'admin';
           }
           
@@ -116,11 +165,14 @@ export const authService = {
           await setDoc(userDocRef, newUser);
         }
       } catch (e) {
-        console.warn("Firestore access error during Google Login", e);
+        handleFirestoreError(e, OperationType.WRITE, `users/${fbUser.uid}`);
       }
 
-      // Enforce admin check again just in case
-      if (fbUser.email === 'admin@wrsmile.com') role = 'admin';
+      // Enforce admin check (Case-insensitive check)
+      const finalLowercaseEmail = fbUser.email?.toLowerCase();
+      if (finalLowercaseEmail === 'admin@wrsmile.com' || finalLowercaseEmail === 'waseemkhan2466@gmail.com') {
+        role = 'admin';
+      }
 
       return {
         uid: fbUser.uid,
@@ -136,7 +188,7 @@ export const authService = {
   },
 
   async loginAsDemoUser(): Promise<User> {
-    // Simulate network delay for realistic feel
+    // Simulate network delay for realistic feels
     await new Promise(resolve => setTimeout(resolve, 800));
     
     return {

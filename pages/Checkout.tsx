@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, MapPin } from 'lucide-react';
-import { useCart } from '../context/CartContext.tsx';
-import { useAuth } from '../context/AuthContext.tsx';
-import { CURRENCY_SYMBOL, WHATSAPP_NUMBER } from '../constants.ts';
-import { storeService } from '../services/storeService.ts';
+import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { CURRENCY_SYMBOL, WHATSAPP_NUMBER } from '../constants';
+import { storeService } from '../services/storeService';
+import { StoreSettings } from '../types';
 
 const Checkout: React.FC = () => {
   const { cart, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +23,8 @@ const Checkout: React.FC = () => {
 
   // Pre-fill data if user is logged in
   useEffect(() => {
+    storeService.getSettings().then(setSettings);
+
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -48,8 +52,8 @@ const Checkout: React.FC = () => {
 
     const fullAddress = `${formData.address}, ${formData.city}`;
 
-    // 1. Create Order in Backend (LocalStorage)
-    await storeService.createOrder({
+    // 1. Create Order in Backend (LocalStorage / Firestore)
+    const createdOrder = await storeService.createOrder({
       items: cart,
       total: cartTotal,
       customerName: formData.name,
@@ -59,8 +63,35 @@ const Checkout: React.FC = () => {
       status: 'pending'
     });
 
+    // 1.5. If Custom WhatsApp Automation Webhook is enabled, dispatch order JSON to the agent
+    if (settings?.whatsappWebhookEnabled && settings?.whatsappWebhookUrl) {
+      try {
+        await fetch(settings.whatsappWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'order.created',
+            order: createdOrder
+          }),
+        });
+      } catch (webhookError) {
+        console.error("Failed to push to automated WhatsApp agent webhook:", webhookError);
+        // Do not block checkout flow if webhook setup fails
+      }
+    }
+
     // 2. Format WhatsApp Message
-    const itemsList = cart.map(item => `• ${item.title} (x${item.qty}) - ${CURRENCY_SYMBOL} ${item.price_retail * item.qty}`).join('%0a');
+    const itemsList = cart.map(item => {
+      const variantSpecs = [];
+      if (item.selectedSize) variantSpecs.push(`Size: ${item.selectedSize}`);
+      if (item.selectedColor) variantSpecs.push(`Color: ${item.selectedColor}`);
+      if (item.selectedMaterial) variantSpecs.push(`Mat: ${item.selectedMaterial}`);
+      const variantStr = variantSpecs.length > 0 ? ` (${variantSpecs.join(', ')})` : '';
+      const unitPrice = item.price_retail * (1 - (item.discount || 0) / 100);
+      return `• ${item.title}${variantStr} (x${item.qty}) - ${CURRENCY_SYMBOL} ${(unitPrice * item.qty).toLocaleString()}`;
+    }).join('%0a');
     
     const message = `*New Order Request* 🛍️%0a%0a` +
       `*Customer:* ${formData.name}%0a` +
@@ -73,8 +104,9 @@ const Checkout: React.FC = () => {
     clearCart();
     setLoading(false);
     
+    const targetWhatsapp = settings?.whatsappNumber || WHATSAPP_NUMBER;
     setTimeout(() => {
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+      window.open(`https://wa.me/${targetWhatsapp}?text=${message}`, '_blank');
       if (user) {
         navigate('/profile');
       } else {
@@ -92,18 +124,44 @@ const Checkout: React.FC = () => {
         <div className="glass-card p-8 rounded-3xl h-fit order-2 md:order-1">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Order Summary</h2>
           <div className="space-y-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-            {cart.map(item => (
-              <div key={item.id} className="flex gap-4 py-4 border-b border-gray-200/30 dark:border-gray-700/30 last:border-0">
-                <img src={item.images[0]} alt={item.title} className="w-16 h-16 rounded-lg object-cover" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{item.title}</h4>
-                  <div className="flex justify-between mt-1 text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">Qty: {item.qty}</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">{CURRENCY_SYMBOL} {(item.price_retail * item.qty).toLocaleString()}</span>
+            {cart.map(item => {
+              const uniqueKey = `${item.id}-${item.selectedSize || ''}-${item.selectedColor || ''}-${item.selectedMaterial || ''}`;
+              const unitPrice = item.price_retail * (1 - (item.discount || 0) / 100);
+              return (
+                <div key={uniqueKey} className="flex gap-4 py-4 border-b border-gray-200/30 dark:border-gray-700/30 last:border-0">
+                  <img src={item.images[0]} alt={item.title} className="w-16 h-16 rounded-lg object-cover" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{item.title}</h4>
+                    
+                    {/* Render variant labels */}
+                    {(item.selectedSize || item.selectedColor || item.selectedMaterial) && (
+                      <div className="flex flex-wrap gap-1 mt-1 text-[11px]">
+                        {item.selectedSize && (
+                          <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 rounded">
+                            Size: {item.selectedSize}
+                          </span>
+                        )}
+                        {item.selectedColor && (
+                          <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 rounded">
+                            Color: {item.selectedColor}
+                          </span>
+                        )}
+                        {item.selectedMaterial && (
+                          <span className="px-1.5 py-0.2 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-300 rounded">
+                            Mat: {item.selectedMaterial}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between mt-1 text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">Qty: {item.qty}</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{CURRENCY_SYMBOL} {(unitPrice * item.qty).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-700/50 space-y-2">

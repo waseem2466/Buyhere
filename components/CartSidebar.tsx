@@ -1,8 +1,8 @@
 import React from 'react';
 import { X, Plus, Minus, Trash2 } from 'lucide-react';
-import { useCart } from '../context/CartContext.tsx';
+import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
-import { CURRENCY_SYMBOL } from '../constants.ts';
+import { CURRENCY_SYMBOL } from '../constants';
 
 const CartSidebar: React.FC = () => {
   const { cart, isCartOpen, toggleCart, updateQty, removeFromCart, cartTotal } = useCart();
@@ -42,45 +42,69 @@ const CartSidebar: React.FC = () => {
               </button>
             </div>
           ) : (
-            cart.map((item) => (
-              <div key={item.id} className="flex gap-4 p-4 glass-card rounded-xl">
-                <img 
-                  src={item.images[0]} 
-                  alt={item.title} 
-                  className="w-20 h-20 object-cover rounded-lg shadow-sm"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">{item.title}</h3>
-                  <p className="text-purple-600 dark:text-purple-400 font-medium">
-                    {CURRENCY_SYMBOL} {(item.price_retail * (1 - (item.discount || 0)/100)).toLocaleString()}
-                  </p>
-                  
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center gap-3 bg-white/40 dark:bg-white/10 rounded-lg px-2 py-1">
+            cart.map((item) => {
+              const uniqueKey = `${item.id}-${item.selectedSize || ''}-${item.selectedColor || ''}-${item.selectedMaterial || ''}`;
+              return (
+                <div key={uniqueKey} className="flex gap-4 p-4 glass-card rounded-xl">
+                  <img 
+                    src={item.images[0]} 
+                    alt={item.title} 
+                    className="w-16 h-16 object-cover rounded-lg shadow-sm"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">{item.title}</h3>
+                    <p className="text-purple-600 dark:text-purple-400 text-sm font-medium">
+                      {CURRENCY_SYMBOL} {(item.price_retail * (1 - (item.discount || 0)/100)).toLocaleString()}
+                    </p>
+
+                    {/* Variant selections tags display */}
+                    {(item.selectedSize || item.selectedColor || item.selectedMaterial) && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.selectedSize && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded border border-gray-200 dark:border-gray-700">
+                            Size: {item.selectedSize}
+                          </span>
+                        )}
+                        {item.selectedColor && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded border border-gray-200 dark:border-gray-700">
+                            Color: {item.selectedColor}
+                          </span>
+                        )}
+                        {item.selectedMaterial && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded border border-gray-200 dark:border-gray-700">
+                            Mat: {item.selectedMaterial}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between mt-2.5">
+                      <div className="flex items-center gap-3 bg-white/40 dark:bg-white/10 rounded-lg px-2 py-1">
+                        <button 
+                          onClick={() => updateQty(item.id, item.qty - 1, item.selectedSize, item.selectedColor, item.selectedMaterial)}
+                          className="p-1 hover:text-purple-600 dark:hover:text-purple-400 dark:text-gray-200 disabled:opacity-50"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-sm font-medium w-4 text-center text-gray-800 dark:text-gray-200">{item.qty}</span>
+                        <button 
+                          onClick={() => updateQty(item.id, item.qty + 1, item.selectedSize, item.selectedColor, item.selectedMaterial)}
+                          className="p-1 hover:text-purple-600 dark:hover:text-purple-400 dark:text-gray-200"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
                       <button 
-                        onClick={() => updateQty(item.id, item.qty - 1)}
-                        className="p-1 hover:text-purple-600 dark:hover:text-purple-400 dark:text-gray-200 disabled:opacity-50"
+                        onClick={() => removeFromCart(item.id, item.selectedSize, item.selectedColor, item.selectedMaterial)}
+                        className="text-red-400 hover:text-red-600 p-2"
                       >
-                        <Minus size={14} />
-                      </button>
-                      <span className="text-sm font-medium w-4 text-center text-gray-800 dark:text-gray-200">{item.qty}</span>
-                      <button 
-                        onClick={() => updateQty(item.id, item.qty + 1)}
-                        className="p-1 hover:text-purple-600 dark:hover:text-purple-400 dark:text-gray-200"
-                      >
-                        <Plus size={14} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
-                    <button 
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-400 hover:text-red-600 p-2"
-                    >
-                      <Trash2 size={18} />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

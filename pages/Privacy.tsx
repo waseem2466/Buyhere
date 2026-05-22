@@ -1,6 +1,6 @@
 import React from 'react';
 import { Shield, Lock, Eye, FileText, Server } from 'lucide-react';
-import { APP_NAME } from '../constants.ts';
+import { APP_NAME } from '../constants';
 
 const Privacy: React.FC = () => {
   return (
