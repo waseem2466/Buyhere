@@ -1,61 +1,93 @@
-import React, { useEffect } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { CartProvider } from './context/CartContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
-import CartSidebar from './components/CartSidebar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Shop from './pages/Shop';
-import ProductDetails from './pages/ProductDetails';
-import Checkout from './pages/Checkout';
-import Admin from './pages/Admin';
-import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
-import Privacy from './pages/Privacy';
+import HomePage from './pages/HomePage';
+import ShopPage from './pages/ShopPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
+import AdminDashboard from './pages/AdminDashboard';
+import LoginPage from './pages/LoginPage';
+import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { Toaster } from './components/Toaster';
+import ScrollToTop from './components/ScrollToTop';
+import './index.css';
 
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-};
+    // Simulate initial load for premium feel
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
-const App: React.FC = () => {
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-slate-950">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.2 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="relative w-16 h-16">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full border-4 border-violet-200 dark:border-violet-900 border-t-violet-600"
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-bold text-gradient">S</span>
+            </div>
+          </div>
+          <motion.p
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="text-sm font-medium text-slate-500 dark:text-slate-400 tracking-widest uppercase"
+          >
+            Shopora.lk
+          </motion.p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
-          <HashRouter>
+          <Router>
             <ScrollToTop />
-            <div className="min-h-screen flex flex-col font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300 overflow-x-hidden w-full relative">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
               <Navbar />
-              <CartSidebar />
-              
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/shop" element={<Shop />} />
-                  <Route path="/product/:slug" element={<ProductDetails />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                </Routes>
+              <main className="pt-20">
+                <AnimatePresence mode="wait">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/shop/:slug" element={<ProductDetailPage />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />
+                    <Route path="/order-success" element={<OrderSuccessPage />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/login" element={<LoginPage />} />
+                  </Routes>
+                </AnimatePresence>
               </main>
-
               <Footer />
+              <Toaster />
             </div>
-          </HashRouter>
+          </Router>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>
   );
-};
+}
 
 export default App;
