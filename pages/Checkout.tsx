@@ -30,7 +30,7 @@ const Checkout: React.FC = () => {
   useEffect(() => {
     storeService.getSettings()
       .then(setSettings)
-      .catch(err => console.error("Checkout: failed to fetch settings:", err));
+      .catch(err => console.error("Checkout: failed to fetch settings:", err instanceof Error ? err.message : String(err)));
 
     if (user) {
       setFormData(prev => ({
@@ -120,7 +120,7 @@ const Checkout: React.FC = () => {
         couponDiscount: discountAmount || undefined
       });
     } catch (orderError) {
-      console.warn("Could not save order details to database (operating in offline/resilient fallback mode):", orderError);
+      console.warn("Could not save order details to database (operating in offline/resilient fallback mode):", orderError instanceof Error ? orderError.message : String(orderError));
     }
 
     // 1.5. If Custom WhatsApp Automation Webhook is enabled and order was successfully created, dispatch order JSON to the agent
@@ -137,7 +137,7 @@ const Checkout: React.FC = () => {
           }),
         });
       } catch (webhookError) {
-        console.error("Failed to push to automated WhatsApp agent webhook:", webhookError);
+        console.error("Failed to push to automated WhatsApp agent webhook:", webhookError instanceof Error ? webhookError.message : String(webhookError));
         // Do not block checkout flow if webhook setup fails
       }
     }

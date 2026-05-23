@@ -36,7 +36,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       try {
         setCart(JSON.parse(savedCart));
       } catch (e) {
-        console.error("Failed to parse cart", e);
+        console.error("Failed to parse cart", e instanceof Error ? e.message : String(e));
       }
     }
   }, []);

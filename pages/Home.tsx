@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, ShieldCheck, Truck, Zap, Sparkles, Smartphone, ShoppingBag, Wallet, Laptop, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { storeService } from '../services/storeService';
 import { Product } from '../types';
 import ProductCard from '../components/ProductCard';
 import { CATEGORIES } from '../constants';
 
 const Home: React.FC = () => {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [selectedHomeCategory, setSelectedHomeCategory] = useState<string>('All');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -15,17 +18,25 @@ const Home: React.FC = () => {
     const loadData = async () => {
       try {
         const products = await storeService.getProducts();
-        // Filter featured products or get the first 3
+        setAllProducts(products);
+        // Filter featured products or get the first 6
         const featured = products.filter(p => p.featured);
-        setFeaturedProducts(featured.length > 0 ? featured.slice(0, 3) : products.slice(0, 3));
+        setFeaturedProducts(featured.length > 0 ? featured.slice(0, 6) : products.slice(0, 6));
       } catch (error) {
-        console.error("Error loading products:", error);
+        console.error("Error loading products:", error instanceof Error ? error.message : String(error));
       } finally {
         setLoading(false);
       }
     };
     loadData();
   }, []);
+
+  const filteredHomeProducts = useMemo(() => {
+    if (selectedHomeCategory === 'All') {
+      return featuredProducts;
+    }
+    return allProducts.filter(p => p.category === selectedHomeCategory);
+  }, [selectedHomeCategory, featuredProducts, allProducts]);
 
   // Category Icon & Details Map
   const categoryMeta: Record<string, { icon: string; desc: string; color: string }> = {
@@ -44,14 +55,14 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-black text-white relative overflow-x-hidden font-sans">
       
-      {/* Immersive Dark Radial Background Glows */}
+      {/* Background Effects matching color and liquidglass */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#7c3aed40,transparent_40%),radial-gradient(circle_at_bottom_left,#06b6d435,transparent_35%)] pointer-events-none z-0" />
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[5%] right-[5%] w-[45vw] h-[45vw] rounded-full bg-indigo-600/15 blur-[120px] filter animate-pulse duration-[8000ms]"></div>
-        <div className="absolute top-[40%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-violet-600/10 blur-[130px] filter"></div>
-        <div className="absolute bottom-[5%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-cyan-600/15 blur-[120px] filter animate-pulse duration-[6000ms]"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+        <div className="absolute top-[35%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.12)_0%,transparent_70%)] blur-[100px] animate-pulse duration-[10000ms]"></div>
+        <div className="absolute bottom-[20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.12)_0%,transparent_70%)] blur-[100px]"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] mix-blend-overlay"></div>
       </div>
 
       <div className="relative z-10">
@@ -129,7 +140,7 @@ const Home: React.FC = () => {
             <div className="relative overflow-hidden bg-white/5 border border-white/15 rounded-[40px] p-6 backdrop-blur-2xl shadow-3xl">
               <img
                 src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1200&auto=format&fit=crop"
-                alt="Shopora Banner Fashion Model"
+                alt="SmartBuy Banner Fashion Model"
                 className="w-full h-[450px] object-cover rounded-[30px] filter brightness-90 group-hover:scale-105 transition-transform duration-700 ease-out"
               />
 
@@ -204,16 +215,16 @@ const Home: React.FC = () => {
         </section>
 
 
-        {/* TRENDING PRODUCTS */}
+        {/* TRENDING PRODUCTS (INTERACTIVE TAB FILTERS) */}
         <section className="max-w-7xl mx-auto px-6 py-20">
           <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-4">
             <div>
-              <div className="text-sm font-bold tracking-widest text-cyan-450 uppercase mb-2 flex items-center gap-1.5">
+              <div className="text-sm font-bold tracking-widest text-cyan-400 uppercase mb-2 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" /> Hot Right Now
               </div>
               <h2 className="text-4xl font-extrabold text-white">Trending Products</h2>
-              <p className="text-gray-400 mt-2 text-sm">
-                Most popular products on Shopora.lk updated live
+              <p className="text-gray-400 mt-2 text-sm font-medium">
+                Most popular products on SmartBuy.lk updated live. Tap any collection tab below to explore.
               </p>
             </div>
 
@@ -222,8 +233,32 @@ const Home: React.FC = () => {
                 to="/shop"
                 className="px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 font-bold hover:scale-105 active:scale-95 transition-transform text-sm"
               >
-                Flash Sale live
+                Flash Sale Live
               </Link>
+            </div>
+          </div>
+
+          {/* INTERACTIVE CATEGORY TAPS */}
+          <div className="mb-12 overflow-x-auto pb-4 custom-scrollbar">
+            <div className="flex gap-2.5 md:gap-3.5 min-w-max p-2 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-3xl shadow-2xl">
+              {['All', ...CATEGORIES].map((tab) => {
+                const isActive = selectedHomeCategory === tab;
+                const icon = tab === 'All' ? '✨' : (categoryMeta[tab]?.icon || '🛍️');
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setSelectedHomeCategory(tab)}
+                    className={`px-6 py-3.5 rounded-2xl text-xs md:text-sm font-extrabold tracking-wider uppercase flex items-center gap-2 transition-all duration-300 outline-none cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-violet-600 to-cyan-500 text-white shadow-xl shadow-violet-500/20 scale-102 border border-white/15'
+                        : 'text-gray-400 hover:text-white bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10'
+                    }`}
+                  >
+                    <span>{icon}</span>
+                    <span>{tab}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -233,12 +268,33 @@ const Home: React.FC = () => {
                 <div key={i} className="h-96 rounded-[2.5rem] bg-neutral-900 border border-white/5 animate-pulse"></div>
               ))}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          ) : filteredHomeProducts.length === 0 ? (
+            <div className="text-center py-20 px-6 bg-white/5 border border-white/10 rounded-[32px] backdrop-blur-2xl">
+              <p className="text-gray-400 text-lg">No products found in this category.</p>
+              <Link to="/shop" className="text-cyan-400 hover:underline mt-2 inline-block font-semibold">
+                Explore entire catalog →
+              </Link>
             </div>
+          ) : (
+            <motion.div 
+              layout
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredHomeProducts.map((product) => (
+                  <motion.div
+                    layout
+                    key={product.id}
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.92 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                  >
+                    <ProductCard product={product} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </section>
 
@@ -259,7 +315,7 @@ const Home: React.FC = () => {
                 </h2>
 
                 <p className="text-gray-300 text-base leading-relaxed max-w-xl">
-                  Shopora.lk ensures premium buyer protection. Shop secure orders using PayPal, Lanka QR local deposits, or standard Cash on Delivery (COD) service directly via WhatsApp.
+                  SmartBuy.lk ensures premium buyer protection. Shop secure orders using PayPal, Lanka QR local deposits, or standard Cash on Delivery (COD) service directly via WhatsApp.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">

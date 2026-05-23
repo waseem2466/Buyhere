@@ -98,7 +98,7 @@ export const authService = {
         role: role as 'admin' | 'customer'
       };
     } catch (error) {
-      console.error("Firebase Login Error:", error);
+      console.error("Firebase Login Error:", error instanceof Error ? error.message : String(error));
       throw error;
     }
   },
@@ -130,7 +130,7 @@ export const authService = {
 
       return newUser;
     } catch (error) {
-      console.error("Firebase Register Error:", error);
+      console.error("Firebase Register Error:", error instanceof Error ? error.message : String(error));
       throw error;
     }
   },
@@ -186,7 +186,7 @@ export const authService = {
       };
 
     } catch (error) {
-      console.error("Google Login Error:", error);
+      console.error("Google Login Error:", error instanceof Error ? error.message : String(error));
       throw error;
     }
   },
@@ -207,7 +207,7 @@ export const authService = {
     try {
       await signOut(auth);
     } catch (e) {
-      console.error("Logout error", e);
+      console.error("Logout error", e instanceof Error ? e.message : String(e));
     }
   }
 };

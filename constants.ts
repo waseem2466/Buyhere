@@ -1,11 +1,11 @@
 import { Product } from './types';
 
-export const APP_NAME = "Shopora.lk";
+export const APP_NAME = "SmartBuy.lk";
 export const CURRENCY_SYMBOL = "LKR";
 export const WHATSAPP_NUMBER = "947649500844"; 
 
 // FIX: Google Drive links don't work for websites. Using a generated logo that matches the theme.
-export const LOGO_URL = "https://ui-avatars.com/api/?name=Shopora&background=7c3aed&color=fff&size=128&bold=true";
+export const LOGO_URL = "https://ui-avatars.com/api/?name=SmartBuy&background=7c3aed&color=fff&size=128&bold=true";
 
 export const CATEGORIES = [
   "Baby Items",

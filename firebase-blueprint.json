@@ -2,7 +2,7 @@
   "entities": {
     "Product": {
       "title": "Product",
-      "description": "Premium shop products available to users on Shopora.lk",
+      "description": "Premium shop products available to users on SmartBuy.lk",
       "type": "object",
       "properties": {
         "title": { "type": "string", "description": "Display title of product" },
@@ -65,7 +65,7 @@
   "firestore": {
     "products/{productId}": {
       "schema": "Product",
-      "description": "Collection of premium goods listed on Shopora.lk"
+      "description": "Collection of premium goods listed on SmartBuy.lk"
     },
     "orders/{orderId}": {
       "schema": "Order",

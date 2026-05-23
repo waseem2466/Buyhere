@@ -40,7 +40,7 @@ const ProductDetails: React.FC = () => {
           setLoading(false);
         })
         .catch(err => {
-          console.error("ProductDetails: failed to fetch product details:", err);
+          console.error("ProductDetails: failed to fetch product details:", err instanceof Error ? err.message : String(err));
           setLoading(false);
         });
     }

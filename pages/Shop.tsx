@@ -33,7 +33,7 @@ const Shop: React.FC = () => {
         setLoading(false);
       })
       .catch(err => {
-        console.error("Shop: fails to load products:", err);
+        console.error("Shop: fails to load products:", err instanceof Error ? err.message : String(err));
         setLoading(false);
       });
   }, []);

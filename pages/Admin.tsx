@@ -89,19 +89,19 @@ const Admin: React.FC = () => {
   const loadData = () => {
     storeService.getProducts()
       .then(setProducts)
-      .catch(err => console.error("Admin: failed to load products:", err));
+      .catch(err => console.error("Admin: failed to load products:", err instanceof Error ? err.message : String(err)));
       
     storeService.getOrders()
       .then(setOrders)
-      .catch(err => console.error("Admin: failed to load orders:", err));
+      .catch(err => console.error("Admin: failed to load orders:", err instanceof Error ? err.message : String(err)));
       
     storeService.getSettings()
       .then(setSettingsForm)
-      .catch(err => console.error("Admin: failed to load settings:", err));
+      .catch(err => console.error("Admin: failed to load settings:", err instanceof Error ? err.message : String(err)));
       
     storeService.getCoupons()
       .then(setCoupons)
-      .catch(err => console.error("Admin: failed to load coupons:", err));
+      .catch(err => console.error("Admin: failed to load coupons:", err instanceof Error ? err.message : String(err)));
   };
 
   const openCouponAddModal = () => {
@@ -145,7 +145,7 @@ const Admin: React.FC = () => {
       const coupons = await storeService.getCoupons();
       setCoupons(coupons);
     } catch (error) {
-      console.error("Failed to save coupon:", error);
+      console.error("Failed to save coupon:", error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -156,7 +156,7 @@ const Admin: React.FC = () => {
         const coupons = await storeService.getCoupons();
         setCoupons(coupons);
       } catch (error) {
-        console.error("Failed to delete coupon:", error);
+        console.error("Failed to delete coupon:", error instanceof Error ? error.message : String(error));
       }
     }
   };
@@ -168,7 +168,7 @@ const Admin: React.FC = () => {
       const coupons = await storeService.getCoupons();
       setCoupons(coupons);
     } catch (error) {
-      console.error("Failed to toggle coupon active state:", error);
+      console.error("Failed to toggle coupon active state:", error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -1292,16 +1292,16 @@ const Admin: React.FC = () => {
                     </button>
                   </div>
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2 leading-relaxed">
-                    💡 <strong>Pro-Tip:</strong> Use web services like <b>remove.bg</b> to make your image background transparent first, then add the URL here to let our <b>Shopora AI Studio Framer</b> render studio textures!
+                    💡 <strong>Pro-Tip:</strong> Use web services like <b>remove.bg</b> to make your image background transparent first, then add the URL here to let our <b>SmartBuy AI Studio Framer</b> render studio textures!
                   </p>
                 </div>
 
-                {/* --- Shopora AI Studio Backdrop Framer --- */}
+                {/* --- SmartBuy AI Studio Backdrop Framer --- */}
                 <div className="bg-purple-50/50 dark:bg-purple-950/15 border border-purple-100 dark:border-purple-900/30 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="p-1 px-2.5 bg-purple-600 dark:bg-purple-500 text-white rounded-full text-[10px] uppercase font-extrabold tracking-wider">NEW</span>
                     <h3 className="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-1.5 font-sans">
-                      ✨ Shopora AI Studio Backdrop Framer
+                      ✨ SmartBuy AI Studio Backdrop Framer
                     </h3>
                   </div>
                   
