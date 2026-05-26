@@ -140,7 +140,7 @@ const Home: React.FC = () => {
             <div className="relative overflow-hidden bg-white/5 border border-white/15 rounded-[40px] p-6 backdrop-blur-2xl shadow-3xl">
               <img
                 src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1200&auto=format&fit=crop"
-                alt="SmartBuy Banner Fashion Model"
+                alt="Shopora Banner Fashion Model"
                 className="w-full h-[450px] object-cover rounded-[30px] filter brightness-90 group-hover:scale-105 transition-transform duration-700 ease-out"
               />
 
@@ -224,7 +224,7 @@ const Home: React.FC = () => {
               </div>
               <h2 className="text-4xl font-extrabold text-white">Trending Products</h2>
               <p className="text-gray-400 mt-2 text-sm font-medium">
-                Most popular products on SmartBuy.lk updated live. Tap any collection tab below to explore.
+                Most popular products on Shopora.lk updated live. Tap any collection tab below to explore.
               </p>
             </div>
 
@@ -315,7 +315,7 @@ const Home: React.FC = () => {
                 </h2>
 
                 <p className="text-gray-300 text-base leading-relaxed max-w-xl">
-                  SmartBuy.lk ensures premium buyer protection. Shop secure orders using PayPal, Lanka QR local deposits, or standard Cash on Delivery (COD) service directly via WhatsApp.
+                  Shopora.lk ensures premium buyer protection. Shop secure orders using PayPal, Lanka QR local deposits, or standard Cash on Delivery (COD) service directly via WhatsApp.
                 </p>
 
                 <div className="flex flex-wrap gap-4 pt-2">

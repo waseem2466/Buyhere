@@ -59,7 +59,7 @@ const App: React.FC = () => {
             transition={{ duration: 1.5, repeat: Infinity }}
             className="text-sm font-medium text-slate-500 dark:text-slate-400 tracking-widest uppercase"
           >
-            SmartBuy.lk
+            Shopora.lk
           </motion.p>
         </motion.div>
       </div>

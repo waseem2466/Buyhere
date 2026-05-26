@@ -440,7 +440,7 @@ const Admin: React.FC = () => {
                   <Sparkles size={18} className="text-purple-600 dark:text-purple-400" />
                   Live Marketplace Insights
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Real-time performance analytics of SmartBuy.lk seller network</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Real-time performance analytics of Shopora.lk seller network</p>
               </div>
               <div className="text-xs text-purple-600 dark:text-purple-400 font-mono bg-purple-50 dark:bg-purple-950/30 px-3 py-1.5 rounded-lg border border-purple-100 dark:border-purple-900/30">
                 Data refreshed just now • Auto Sync active
@@ -586,7 +586,7 @@ const Admin: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                     🔥 Hot Sellers Leaderboard
                   </h3>
-                  <p className="text-[11px] text-gray-400">Our best performing list of items according to global checkouts done on SmartBuy.lk</p>
+                  <p className="text-[11px] text-gray-400">Our best performing list of items according to global checkouts done on Shopora.lk</p>
                 </div>
               </div>
 
@@ -1292,16 +1292,16 @@ const Admin: React.FC = () => {
                     </button>
                   </div>
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2 leading-relaxed">
-                    💡 <strong>Pro-Tip:</strong> Use web services like <b>remove.bg</b> to make your image background transparent first, then add the URL here to let our <b>SmartBuy AI Studio Framer</b> render studio textures!
+                    💡 <strong>Pro-Tip:</strong> Use web services like <b>remove.bg</b> to make your image background transparent first, then add the URL here to let our <b>Shopora AI Studio Framer</b> render studio textures!
                   </p>
                 </div>
 
-                {/* --- SmartBuy AI Studio Backdrop Framer --- */}
+                {/* --- Shopora AI Studio Backdrop Framer --- */}
                 <div className="bg-purple-50/50 dark:bg-purple-950/15 border border-purple-100 dark:border-purple-900/30 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="p-1 px-2.5 bg-purple-600 dark:bg-purple-500 text-white rounded-full text-[10px] uppercase font-extrabold tracking-wider">NEW</span>
                     <h3 className="text-sm font-bold text-gray-800 dark:text-white flex items-center gap-1.5 font-sans">
-                      ✨ SmartBuy AI Studio Backdrop Framer
+                      ✨ Shopora AI Studio Backdrop Framer
                     </h3>
                   </div>
                   
